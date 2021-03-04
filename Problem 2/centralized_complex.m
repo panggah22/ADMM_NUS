@@ -4,6 +4,8 @@
 % the objective function contains quadratic term
 
 clear; tic;
+relax = false;
+% relax = true;
 ts = 5;
 [len, lent] = lengthvars(ts);
 inp = inputvars(lent);
@@ -31,7 +33,9 @@ ub(inp.n) = 8;
 
 %% Define variable type (continuous and integer)
 ctypenum = 67*ones(1,lent.total);
-% ctypenum(inp.intg) = 73;  % Comment this if want relaxed integer
+if ~relax
+    ctypenum(inp.intg) = 73;  % Comment this if want relaxed integer
+end
 ctype = char(ctypenum);
 
 options = cplexoptimset('cplex');
