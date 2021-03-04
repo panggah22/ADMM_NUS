@@ -6,7 +6,7 @@ tic
 ts = 6; % Set the time step
 maxiter = 20; % Set maximum iteration
 rho = 1; % Penalty value for ADMM
-tol = 0.001; % tolerance
+tol = 10^-6; % tolerance
 
 %% Taking inputs of every entity
 [len1, lent1] = lengthvars2(ts);
