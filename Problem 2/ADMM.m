@@ -5,10 +5,12 @@ clear; clc;
 tic
 ts = 5; % Set the time step
 maxiter = 20; % Set maximum iteration
-rhoset = [0.1, 1, 10]; % Penalty value for ADMM
+rhoset = [0.1 1 10]; % Penalty value for ADMM
 tol = 10^-6; % tolerance
 y_hat = [2 4 8 7 10]';
 l_hat = [25 40 35 50 55]';
+% relax = false;
+relax = true;
 
 for pp = 1:length(rhoset) 
     rho = rhoset(pp);
@@ -44,8 +46,8 @@ for pp = 1:length(rhoset)
     
     for iter = 2:maxiter
         fprintf('Iteration no. %d\n',iter);
-        [argx1,fval1] = admm2(rho,ts,U{1,iter-1});
-        [argx2,fval2] = admm3(rho,ts,U{2,iter-1});
+        [argx1,fval1,quad1,lin1] = admm2(relax,rho,ts,U{1,iter-1},l_hat,y_hat);
+        [argx2,fval2,quad2,lin2] = admm3(relax,rho,ts,U{2,iter-1},y_hat);
         
         %% Update X and U
         X{1,iter} = argx1;
@@ -60,13 +62,15 @@ for pp = 1:length(rhoset)
         U{2,iter}(inp2.z) = U{2,iter}(inp2.z) + X{1,iter}(inp1.y) - X{2,iter-1}(inp1.y)/2;
         
         %% Evaluate residual
-        r = X{1,iter}(inp1.y) - X{2,iter}(inp2.z)/2;
-        d = X{1,iter}(inp1.y) - X{1,iter-1}(inp1.y)/2 + X{2,iter}(inp2.z) - X{2,iter-1}(inp2.z)/2;
+        r = (X{1,iter}(inp1.y) - X{2,iter}(inp2.z))/2;
+        d = (X{1,iter}(inp1.y) - X{1,iter-1}(inp1.y))/2 + (X{2,iter}(inp2.z) - X{2,iter-1}(inp2.z))/2;
         
+        fv(iter-1) = fval1+fval2;
         residual(iter-1) = max(abs([r;d]));
         if  residual(iter-1)<= tol
             break
         end
+        
     end
     
     figure;
@@ -75,5 +79,10 @@ for pp = 1:length(rhoset)
     xlabel ('Iteration');
     ylabel ('Residual')
     
+    finalVar{pp} = X(:,iter);
+    %% Counting back objective value
+    fv1(pp) = sum(X{1,iter} .* lin1 + X{1,iter}.^2 .* (diag(quad1)/2));
+    fv2(pp) = sum(X{2,iter} .* lin2 + X{2,iter}.^2 .* (diag(quad2)/2));
 end
+
 toc

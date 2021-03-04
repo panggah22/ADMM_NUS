@@ -15,8 +15,8 @@ len.deln = 1;
 
 lent.x = len.x * ts;
 lent.y = len.y * ts;
-lent.n = len.n * ts;
-lent.deln = len.deln * (ts-1);
+lent.n = len.n * (ts+1);
+lent.deln = len.deln * ts;
 
 lent.total = sum(cell2mat(struct2cell(lent)));
 end

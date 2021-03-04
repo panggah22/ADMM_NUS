@@ -30,7 +30,7 @@ equ(2).Aeq(:,inp.n) = time_relate(eye(len.n), -eye(len.n), ts+1);
 
 equ(2).beq = zeros(lent.deln,1);
 
-%% Cosntraint 3
+%% Constraint 3
 equ(3).Aeq = zeros(len.n,lent.total);
 equ(3).Aeq(:,inp.n) = initials(eye(len.n), ts+1);
 

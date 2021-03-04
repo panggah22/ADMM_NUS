@@ -1,4 +1,4 @@
-function [xx, fval] = admm2(rho,ts,u)
+function [xx, fval, H1, f1] = admm2(relax,rho,ts,u,l_hat,y_hat)
 %% MAIN PROGRAM
 % ----------------------------------
 % This program uses Mixed-Integer Quadratic Programming as the element in
@@ -28,16 +28,19 @@ f = f1 + ((rho/2) * f2);
 
 %% Bounds
 lb = -inf(lent.total,1);
+lb(inp.x) = 0;
 lb(inp.y) = 0;
 lb(inp.n) = 0;
 
 ub = inf(lent.total,1);
-ub(inp.y) = 5;
+ub(inp.y) = y_hat;
 ub(inp.n) = 8;
 
 %% Define variable type (continuous and integer)
 ctypenum = 67*ones(1,lent.total);
-ctypenum(inp.intg) = 73;
+if ~relax
+    ctypenum(inp.intg) = 73;
+end
 ctype = char(ctypenum);
 
 options = cplexoptimset('cplex');
@@ -48,16 +51,22 @@ options.display = 'on';
 equ(1).Aeq = zeros(lent.x,lent.total);
 equ(1).Aeq(:,inp.x) = eye(lent.x);
 equ(1).Aeq(:,inp.y) = eye(lent.y);
-equ(1).Aeq(:,inp.n) = 5*eye(lent.n);
+equ(1).Aeq(:,inp.n) = 5*[zeros(lent.n-len.n,1) eye(lent.n-len.n)];
 
-equ(1).beq = 100*ones(lent.x,1);
+equ(1).beq = ones(lent.x,1) .* l_hat;
 
 %% Constraint 2
 equ(2).Aeq = zeros(lent.deln,lent.total);
 equ(2).Aeq(:,inp.deln) = eye(lent.deln);
-equ(2).Aeq(:,inp.n) = time_relate(eye(len.n), -eye(len.n), ts);
+equ(2).Aeq(:,inp.n) = time_relate(eye(len.n), -eye(len.n), ts+1);
 
 equ(2).beq = zeros(lent.deln,1);
+
+%% Constraint 3
+equ(3).Aeq = zeros(len.n,lent.total);
+equ(3).Aeq(:,inp.n) = initials(eye(len.n), ts+1);
+
+equ(3).beq = zeros(len.n);
 
 %% Concatenate constraints
 if logical(exist('equ','var'))

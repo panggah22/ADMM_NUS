@@ -1,4 +1,4 @@
-function [xx, fval] = admm3(rho,ts,u)
+function [xx, fval, H1, f1] = admm3(relax,rho,ts,u,y_hat)
 %% MAIN PROGRAM
 % ----------------------------------
 % This program uses Mixed-Integer Quadratic Programming as the element in
@@ -7,7 +7,7 @@ function [xx, fval] = admm3(rho,ts,u)
 [len, lent] = lengthvars3(ts);
 inp = inputvars3(lent);
 
-%% Objective Function 
+%% Objective Function
 H1 = zeros(lent.total);
 H2 = zeros(lent.total);
 H2(inp.z,inp.z) = 2*eye(lent.z);
@@ -23,30 +23,34 @@ f = f1 + ((rho/2) * f2);
 
 %% Bounds
 lb = -inf(lent.total,1);
+lb(inp.z) = 0;
 
 ub = inf(lent.total,1);
+ub(inp.z) = y_hat;
 
 %% Define variable type (continuous and integer)
 ctypenum = 67*ones(1,lent.total);
-% ctypenum(inp.intg) = 73;
+if ~relax
+    ctypenum(inp.intg) = 73;
+end
 ctype = char(ctypenum);
 
 options = cplexoptimset('cplex');
 options.display = 'on';
 
 %% Put constraints here
-%% Constraint 1 // 0<= z <=5
-ineq(1).A = zeros(2*lent.z,lent.total);
-ineq(1).A(:,inp.z) = [-eye(lent.z); eye(lent.z)];
-
-ineq(1).b = [zeros(lent.z,1); ones(lent.z,1)*5];
+% %% Constraint 1 // 0<= z <=5
+% ineq(1).A = zeros(2*lent.z,lent.total);
+% ineq(1).A(:,inp.z) = [-eye(lent.z); eye(lent.z)];
+%
+% ineq(1).b = [zeros(lent.z,1); ones(lent.z,1) .* y_hat];
 
 %% Constraint 2
 equ(2).Aeq = zeros(lent.m,lent.total);
 equ(2).Aeq(:,inp.m) = eye(lent.m);
-equ(2).Aeq(:,inp.z) = -eye(lent.z);
+equ(2).Aeq(:,inp.z) = eye(lent.z);
 
-equ(2).beq = ones(lent.m,1) * -5;
+equ(2).beq = ones(lent.m,1) .* y_hat;
 
 %% Concatenate constraints
 if logical(exist('equ','var'))
