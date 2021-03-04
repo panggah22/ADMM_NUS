@@ -7,6 +7,8 @@ ts = 6; % Set the time step
 maxiter = 20; % Set maximum iteration
 rhoset = [0.1, 1, 10]; % Penalty value for ADMM
 tol = 10^-6; % tolerance
+y_hat = [2 4 8 7 10]';
+l_hat = [25 40 35 50 55]';
 
 for pp = 1:length(rhoset) 
     rho = rhoset(pp);
