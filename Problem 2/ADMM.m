@@ -3,7 +3,7 @@
 
 clear; clc;
 tic
-ts = 6; % Set the time step
+ts = 5; % Set the time step
 maxiter = 20; % Set maximum iteration
 rhoset = [0.1, 1, 10]; % Penalty value for ADMM
 tol = 10^-6; % tolerance

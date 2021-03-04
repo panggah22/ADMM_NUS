@@ -4,9 +4,11 @@
 % the objective function contains quadratic term
 
 clear; tic;
-ts = 6;
+ts = 5;
 [len, lent] = lengthvars(ts);
 inp = inputvars(lent);
+y_hat = [2 4 8 7 10]';
+l_hat = [25 40 35 50 55]';
 
 %% Objective Function 
 H = zeros(lent.total);
@@ -19,16 +21,17 @@ f(inp.m) = 100;
 
 %% Bounds
 lb = -inf(lent.total,1);
+lb(inp.x) = 0;
 lb(inp.y) = 0;
 lb(inp.n) = 0;
 
 ub = inf(lent.total,1);
-ub(inp.y) = 5;
+ub(inp.y) = y_hat;
 ub(inp.n) = 8;
 
 %% Define variable type (continuous and integer)
 ctypenum = 67*ones(1,lent.total);
-% ctypenum(inp.intg) = 73;
+ctypenum(inp.intg) = 73;  % Comment this if want relaxed integer
 ctype = char(ctypenum);
 
 options = cplexoptimset('cplex');
