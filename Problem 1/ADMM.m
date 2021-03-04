@@ -58,8 +58,8 @@ for pp = 1:length(rhoset)
         U{2,iter}(inp2.z) = U{2,iter}(inp2.z) + X{1,iter}(inp1.y) - X{2,iter-1}(inp1.y)/2;
         
         %% Evaluate residual
-        r = X{1,iter}(inp1.y) - X{2,iter}(inp2.z)/2;
-        d = X{1,iter}(inp1.y) - X{1,iter-1}(inp1.y)/2 + X{2,iter}(inp2.z) - X{2,iter-1}(inp2.z)/2;
+        r = (X{1,iter}(inp1.y) - X{2,iter}(inp2.z))/2;
+        d = (X{1,iter}(inp1.y) - X{1,iter-1}(inp1.y))/2 + (X{2,iter}(inp2.z) - X{2,iter-1}(inp2.z))/2;
         
         residual(iter-1) = max(abs([r;d]));
         if  residual(iter-1)<= tol
