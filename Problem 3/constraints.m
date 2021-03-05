@@ -19,19 +19,22 @@
 equ(1).Aeq = zeros(lent.x,lent.total);
 equ(1).Aeq(:,inp.x) = eye(lent.x);
 equ(1).Aeq(:,inp.y) = eye(lent.y);
-equ(1).Aeq(:,inp.n) = 5*eye(lent.n);
+equ(1).Aeq(:,inp.n) = 5*[zeros(lent.n-len.n,1) eye(lent.n-len.n)];
 
 equ(1).beq = ones(lent.x,1) .* l_hat;
 
 %% Constraint 2
 equ(2).Aeq = zeros(lent.deln,lent.total);
 equ(2).Aeq(:,inp.deln) = eye(lent.deln);
-equ(2).Aeq(:,inp.n) = time_relate(eye(len.n), -eye(len.n), ts);
+equ(2).Aeq(:,inp.n) = time_relate(eye(len.n), -eye(len.n), ts+1);
 
 equ(2).beq = zeros(lent.deln,1);
 
-%% Cosntraint 3
+%% Constraint 3
+equ(3).Aeq = zeros(len.n,lent.total);
+equ(3).Aeq(:,inp.n) = initials(eye(len.n), ts+1);
 
+equ(3).beq = zeros(len.n);
 
 %% Constraint 4
 equ(4).Aeq = zeros(lent.m,lent.total);

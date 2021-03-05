@@ -1,45 +1,37 @@
-function [xx, fval, H1, f1] = admm2(relax,rho,ts,u,l_hat,y_hat)
+function [xx, fval, H1, f1] = admm2(relax,rho,ts,u,y_hat)
 %% MAIN PROGRAM
 % ----------------------------------
 % This program uses Mixed-Integer Quadratic Programming as the element in
 % the objective function contains quadratic term
 
-[len, lent] = lengthvars2(ts);
-inp = inputvars2(lent);
+[len, lent] = lengthvars3(ts);
+inp = inputvars3(lent);
 
-%% Objective Function 
+%% Objective Function
 H1 = zeros(lent.total);
-H1(inp.deln,inp.deln) = 2*50*eye(lent.deln);
-
 H2 = zeros(lent.total);
-H2(inp.y,inp.y) = 2*eye(lent.y);
+H2(inp.z,inp.z) = 2*eye(lent.z);
 
 H = H1 + ((rho/2) * H2);
 
 f1 = zeros(lent.total,1);
-f1(inp.x) = 5;
-f1(inp.y) = 3;
-
+f1(inp.m) = 100;
 f2 = zeros(lent.total,1);
-f2(inp.y) = -2 * u(inp.y);
+f2(inp.z) = -2 * u(inp.z);
 
 f = f1 + ((rho/2) * f2);
 
-
 %% Bounds
 lb = -inf(lent.total,1);
-lb(inp.x) = 0;
-lb(inp.y) = 0;
-lb(inp.n) = 0;
+lb(inp.z) = 0;
 
 ub = inf(lent.total,1);
-ub(inp.y) = y_hat;
-ub(inp.n) = 8;
+ub(inp.z) = y_hat;
 
 %% Define variable type (continuous and integer)
 ctypenum = 67*ones(1,lent.total);
-if relax == false
-ctypenum(inp.intg) = 73;
+if ~relax
+    ctypenum(inp.intg) = 73;
 end
 ctype = char(ctypenum);
 
@@ -47,26 +39,18 @@ options = cplexoptimset('cplex');
 options.display = 'on';
 
 %% Put constraints here
-%% Constraint 1
-equ(1).Aeq = zeros(lent.x,lent.total);
-equ(1).Aeq(:,inp.x) = eye(lent.x);
-equ(1).Aeq(:,inp.y) = eye(lent.y);
-equ(1).Aeq(:,inp.n) = 5*[zeros(lent.n-len.n,1) eye(lent.n-len.n)];
-
-equ(1).beq = ones(lent.x,1) .* l_hat;
+% %% Constraint 1 // 0<= z <=5
+% ineq(1).A = zeros(2*lent.z,lent.total);
+% ineq(1).A(:,inp.z) = [-eye(lent.z); eye(lent.z)];
+%
+% ineq(1).b = [zeros(lent.z,1); ones(lent.z,1) .* y_hat];
 
 %% Constraint 2
-equ(2).Aeq = zeros(lent.deln,lent.total);
-equ(2).Aeq(:,inp.deln) = eye(lent.deln);
-equ(2).Aeq(:,inp.n) = time_relate(eye(len.n), -eye(len.n), ts+1);
+equ(2).Aeq = zeros(lent.m,lent.total);
+equ(2).Aeq(:,inp.m) = eye(lent.m);
+equ(2).Aeq(:,inp.z) = eye(lent.z);
 
-equ(2).beq = zeros(lent.deln,1);
-
-%% Constraint 3
-equ(3).Aeq = zeros(len.n,lent.total);
-equ(3).Aeq(:,inp.n) = initials(eye(len.n), ts+1);
-
-equ(3).beq = zeros(len.n);
+equ(2).beq = ones(lent.m,1) .* y_hat;
 
 %% Concatenate constraints
 if logical(exist('equ','var'))
