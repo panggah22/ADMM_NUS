@@ -1,13 +1,9 @@
 function res = extractresult(fval,xx,len,inp,ts)
 % Program to create output respective to the variable names
-
+fnames  = {'x','y','yy','n','deln','q','qq','wc','wd','betac','betad'};
 %% Extract result
-
+for ii = 1:length(fnames)
+    res.(fnames{ii}) = reshape(xx(inp.(fnames{ii})),len.(fnames{ii}),ts);
+end
 res.fval = fval;
-res.x = reshape(xx(inp.x),len.x,ts);
-res.y = reshape(xx(inp.y),len.y,ts);
-res.m = reshape(xx(inp.m),len.m,ts);
-res.n = reshape(xx(inp.n),len.n,ts+1);
-res.deln = reshape(xx(inp.deln),len.deln,ts);
-
 end

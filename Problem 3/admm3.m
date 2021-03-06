@@ -1,48 +1,45 @@
+function [xx, fval, H1, f1] = admm1(relax,rho,ts,u,l_hat,y_hat)
 %% MAIN PROGRAM
 % ----------------------------------
 % This program uses Mixed-Integer Quadratic Programming as the element in
 % the objective function contains quadratic term
 
-clear; tic;
-relax = false;
-% relax = true;
-ts = 5;
-[len, lent] = lengthvars(ts);
-inp = inputvars(lent);
-y_hat = [2 4 8 7 10]';
-l_hat = [25 40 35 50 55]';
+[len, lent] = lengthvars2(ts);
+inp = inputvars2(lent);
 
 %% Objective Function 
-H = zeros(lent.total);
-H(inp.deln,inp.deln) = 2*50*eye(lent.deln);
-H(inp.qq,inp.qq) = 2*200*eye(lent.qq);
+H1 = zeros(lent.total);
+H1(inp.deln,inp.deln) = 2*50*eye(lent.deln);
 
-f = zeros(lent.total,1);
-f(inp.x) = 5;
-f(inp.y) = 3;
-f(inp.wd) = 4;
-f(inp.yy) = 100;
+H2 = zeros(lent.total);
+H2(inp.y,inp.y) = 2*eye(lent.y);
+
+H = H1 + ((rho/2) * H2);
+
+f1 = zeros(lent.total,1);
+f1(inp.x) = 5;
+f1(inp.y) = 3;
+
+f2 = zeros(lent.total,1);
+f2(inp.y) = -2 * u(inp.y);
+
+f = f1 + ((rho/2) * f2);
+
 
 %% Bounds
 lb = -inf(lent.total,1);
 lb(inp.x) = 0;
 lb(inp.y) = 0;
 lb(inp.n) = 0;
-lb(inp.wc) = 0;
-lb(inp.wd) = 0;
-lb(inp.q) = 0.4;
 
 ub = inf(lent.total,1);
 ub(inp.y) = y_hat;
 ub(inp.n) = 8;
-ub(inp.q) = 1;
-ub(inp.betac) = 1;
-ub(inp.betad) = 1;
 
 %% Define variable type (continuous and integer)
 ctypenum = 67*ones(1,lent.total);
 if ~relax
-    ctypenum(inp.intg) = 73;  % Comment this if want relaxed integer
+    ctypenum(inp.intg) = 73;
 end
 ctype = char(ctypenum);
 
@@ -50,7 +47,26 @@ options = cplexoptimset('cplex');
 options.display = 'on';
 
 %% Put constraints here
-constraints;
+%% Constraint 1
+equ(1).Aeq = zeros(lent.x,lent.total);
+equ(1).Aeq(:,inp.x) = eye(lent.x);
+equ(1).Aeq(:,inp.y) = eye(lent.y);
+equ(1).Aeq(:,inp.n) = 5*[zeros(lent.n-len.n,1) eye(lent.n-len.n)];
+
+equ(1).beq = ones(lent.x,1) .* l_hat;
+
+%% Constraint 2
+equ(2).Aeq = zeros(lent.deln,lent.total);
+equ(2).Aeq(:,inp.deln) = eye(lent.deln);
+equ(2).Aeq(:,inp.n) = time_relate(eye(len.n), -eye(len.n), ts+1);
+
+equ(2).beq = zeros(lent.deln,1);
+
+%% Constraint 3
+equ(3).Aeq = zeros(len.n,lent.total);
+equ(3).Aeq(:,inp.n) = initials(eye(len.n), ts+1);
+
+equ(3).beq = zeros(len.n);
 
 %% Concatenate constraints
 if logical(exist('equ','var'))
@@ -84,4 +100,5 @@ end
 [xx, fval, exitflag, output] = cplexmiqp (H, f, Aineq, bineq, Aeq, beq,...
     [], [], [], lb, ub, ctype, [], options);
 
-res = extractresult(fval,xx,len,inp,ts);
+% res = extractresult(fval,xx,len,inp,ts);
+end
