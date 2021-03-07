@@ -4,8 +4,8 @@ function [xx, fval, H1, f1] = admm1(relax,rho,ts,u,l_hat,y_hat)
 % This program uses Mixed-Integer Quadratic Programming as the element in
 % the objective function contains quadratic term
 
-[len, lent] = lengthvars2(ts);
-inp = inputvars2(lent);
+[len, lent] = lengthvars1(ts);
+inp = inputvars1(lent);
 
 %% Objective Function 
 H1 = zeros(lent.total);
@@ -38,10 +38,13 @@ lb(inp.y) = 0;
 lb(inp.n) = 0;
 lb(inp.wc) = 0;
 lb(inp.wd) = 0;
+lb(inp.betac) = 0;
+lb(inp.betad) = 0;
 
 ub = inf(lent.total,1);
 ub(inp.y) = y_hat;
 ub(inp.n) = 8;
+ub([inp.betac inp.betad]) = 1;
 
 %% Define variable type (continuous and integer)
 ctypenum = 67*ones(1,lent.total);
@@ -58,7 +61,7 @@ options.display = 'on';
 equ(1).Aeq = zeros(lent.x,lent.total);
 equ(1).Aeq(:,inp.x) = eye(lent.x);
 equ(1).Aeq(:,inp.y) = eye(lent.y);
-equ(1).Aeq(:,inp.n) = 5*[zeros(lent.n-len.n,1) eye(lent.n-len.n)];
+equ(1).Aeq(:,inp.n) = 5*eye(lent.n);
 equ(1).Aeq(:,inp.wd) = eye(lent.wd);
 equ(1).Aeq(:,inp.wc) = -eye(lent.wc);
 
@@ -71,11 +74,26 @@ equ(2).Aeq(:,inp.n) = [-eye(len.n) zeros(len.n,lent.n-len.n); time_relate(eye(le
 
 equ(2).beq = zeros(lent.deln,1);
 
-%% Constraint 3
-equ(3).Aeq = zeros(len.n,lent.total);
-equ(3).Aeq(:,inp.n) = initials(eye(len.n), ts+1);
+%% Constraint 6
+ineq(6).A = zeros(lent.wc,lent.total);
+ineq(6).A(:,inp.wc) = eye(lent.wc);
+ineq(6).A(:,inp.betac) = 10 * -eye(lent.betac);
 
-equ(3).beq = zeros(len.n);
+ineq(6).b = zeros(lent.wc,1);
+
+%% Constraint 7
+ineq(7).A = zeros(lent.wd,lent.total);
+ineq(7).A(:,inp.wd) = eye(lent.wd);
+ineq(7).A(:,inp.betad) = 10 * -eye(lent.betad);
+
+ineq(7).b = zeros(lent.wd,1);
+
+%% Constraint 8
+ineq(8).A = zeros(lent.betac,lent.total);
+ineq(8).A(:,inp.betac) = eye(lent.betac);
+ineq(8).A(:,inp.betad) = eye(lent.betad);
+
+ineq(8).b = ones(lent.betac,1) .* 1.5;
 
 %% Concatenate constraints
 if logical(exist('equ','var'))

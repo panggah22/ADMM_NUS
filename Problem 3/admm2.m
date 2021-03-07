@@ -4,8 +4,8 @@ function [xx, fval, H1, f1] = admm2(relax,rho,ts,u,y_hat)
 % This program uses Mixed-Integer Quadratic Programming as the element in
 % the objective function contains quadratic term
 
-[len, lent] = lengthvars3(ts);
-inp = inputvars3(lent);
+[len, lent] = lengthvars2(ts);
+inp = inputvars2(lent);
 
 %% Objective Function
 H1 = zeros(lent.total);
@@ -39,11 +39,6 @@ options = cplexoptimset('cplex');
 options.display = 'on';
 
 %% Put constraints here
-% %% Constraint 1 // 0<= z <=5
-% ineq(1).A = zeros(2*lent.z,lent.total);
-% ineq(1).A(:,inp.z) = [-eye(lent.z); eye(lent.z)];
-%
-% ineq(1).b = [zeros(lent.z,1); ones(lent.z,1) .* y_hat];
 
 %% Constraint 2
 equ(2).Aeq = zeros(lent.m,lent.total);

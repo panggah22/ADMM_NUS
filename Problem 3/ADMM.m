@@ -4,9 +4,9 @@
 clear; clc;
 tic
 ts = 5; % Set the time step
-maxiter = 20; % Set maximum iteration
-rhoset = [0.1 1 10]; % Penalty value for ADMM
-tol = 10^-6; % tolerance
+maxiter = 100; % Set maximum iteration
+rhoset = [10]; % Penalty value for ADMM
+tol = 10^-5; % tolerance
 y_hat = [2 4 8 7 10]';
 l_hat = [25 40 35 50 55]';
 relax = false;
@@ -19,25 +19,40 @@ for pp = 1:length(rhoset)
     inp1 = inputvars1(lent1);
     [len2, lent2] = lengthvars2(ts);
     inp2 = inputvars2(lent2);
+    [len3, lent3] = lengthvars3(ts);
+    inp3 = inputvars3(lent3);
     
     %% Initial values of X and U
     X1 = zeros(lent1.total,1);
     X1(inp1.y) = 1;
+    X1(inp1.wc) = 1;
+    X1(inp1.wd) = 1;
     
     X2 = zeros(lent2.total,1);
     X2(inp2.z) = 1;
     
+    X3 = zeros(lent3.total,1);
+    X3(inp3.wc) = 1;
+    X3(inp3.wd) = 1;
+    
     U1 = zeros(lent1.total,1);
     U1(inp1.y) = U1(inp1.y) + (X1(inp1.y) + X2(inp2.z))/2;
+    U1(inp1.wc) = U1(inp1.wc) + (X1(inp1.wc) + X3(inp3.wc))/2;
+    U1(inp1.wd) = U1(inp1.wd) + (X1(inp1.wd) + X3(inp3.wd))/2;
     
     U2 = zeros(lent2.total,1);
     U2(inp2.z) = U2(inp2.z) + (X2(inp2.z) + X1(inp1.y))/2;
     
+    U3 = zeros(lent3.total,1);
+    U3(inp3.wc) = U3(inp3.wc) + (X3(inp3.wc) + X1(inp1.wc))/2;
+    U3(inp3.wd) = U3(inp3.wd) + (X3(inp3.wd) + X1(inp1.wd))/2;
+    
     %% Run the ADMM
-    X = cell(2,maxiter);
-    U = cell(2,maxiter);
+    X = cell(3,maxiter);
+    U = cell(3,maxiter);
     X{1,1} = X1; U{1,1} = U1;
     X{2,1} = X2; U{2,1} = U2;
+    X{3,1} = X3; U{3,1} = U3;
     
     % residual = zeros(1,maxiter);
     R = zeros(lent1.total,1); R(:,1) = 1;
@@ -46,26 +61,43 @@ for pp = 1:length(rhoset)
     
     for iter = 2:maxiter
         fprintf('Iteration no. %d\n',iter);
-        [argx1,fval1,quad1,lin1] = admm2(relax,rho,ts,U{1,iter-1},l_hat,y_hat);
-        [argx2,fval2,quad2,lin2] = admm3(relax,rho,ts,U{2,iter-1},y_hat);
+        [argx1,fval1,quad1,lin1] = admm1(relax,rho,ts,U{1,iter-1},l_hat,y_hat);
+        [argx2,fval2,quad2,lin2] = admm2(relax,rho,ts,U{2,iter-1},y_hat);
+        [argx3,fval3,quad3,lin3] = admm3(relax,rho,ts,U{3,iter-1});
         
         %% Update X and U
         X{1,iter} = argx1;
         X{2,iter} = argx2;
+        X{3,iter} = argx3;
         
         % Update U1
         U{1,iter} = U{1,iter-1} - X{1,iter-1}/2;
         U{1,iter}(inp1.y) = U{1,iter}(inp1.y) + X{2,iter}(inp2.z) - X{2,iter-1}(inp2.z)/2;
+        U{1,iter}(inp1.wc) = U{1,iter}(inp1.wc) + X{3,iter}(inp3.wc) - X{3,iter-1}(inp3.wc)/2;
+        U{1,iter}(inp1.wd) = U{1,iter}(inp1.wd) + X{3,iter}(inp3.wd) - X{3,iter-1}(inp3.wd)/2;
         
         % Update U2
         U{2,iter} = U{2,iter-1} - X{2,iter-1}/2;
         U{2,iter}(inp2.z) = U{2,iter}(inp2.z) + X{1,iter}(inp1.y) - X{2,iter-1}(inp1.y)/2;
         
-        %% Evaluate residual
-        r = (X{1,iter}(inp1.y) - X{2,iter}(inp2.z))/2;
-        d = (X{1,iter}(inp1.y) - X{1,iter-1}(inp1.y))/2 + (X{2,iter}(inp2.z) - X{2,iter-1}(inp2.z))/2;
+        % Update U3
+        U{3,iter} = U{3,iter-1} - X{3,iter-1}/2;
+        U{3,iter}(inp3.wc) = U{3,iter}(inp3.wc) + X{1,iter}(inp1.wc) - X{1,iter-1}(inp1.wc)/2;
+        U{3,iter}(inp3.wd) = U{3,iter}(inp3.wd) + X{1,iter}(inp1.wd) - X{1,iter-1}(inp1.wd)/2;
         
-        fv(iter-1) = fval1+fval2;
+        
+        %% Evaluate residual
+        r = [(X{1,iter}(inp1.y) - X{2,iter}(inp2.z))/2;
+             (X{1,iter}(inp1.wc) - X{3,iter}(inp3.wc))/2;
+             (X{1,iter}(inp1.wd) - X{3,iter}(inp3.wd))/2;
+             ];
+        d = [(X{1,iter}(inp1.y) - X{1,iter-1}(inp1.y))/2 + (X{2,iter}(inp2.z) - X{2,iter-1}(inp2.z))/2;
+             (X{1,iter}(inp1.wc) - X{1,iter-1}(inp1.wc))/2 + (X{3,iter}(inp3.wc) - X{3,iter-1}(inp3.wc))/2;
+             (X{1,iter}(inp1.wd) - X{1,iter-1}(inp1.wd))/2 + (X{3,iter}(inp3.wd) - X{3,iter-1}(inp3.wd))/2;
+             ];
+        
+        
+%         fv(iter-1) = fval1+fval2;
         residual(iter-1) = max(abs([r;d]));
         if  residual(iter-1)<= tol
             break
@@ -74,7 +106,8 @@ for pp = 1:length(rhoset)
     end
     
     figure;
-    re = plot(residual,'LineWidth',1.5);
+    re = semilogy(residual,'LineWidth',1.5);
+    grid on
     title (['Convergence with \rho = ',num2str(rho)]);
     xlabel ('Iteration');
     ylabel ('Residual')
