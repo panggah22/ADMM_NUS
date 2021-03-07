@@ -20,6 +20,8 @@ equ(1).Aeq = zeros(lent.x,lent.total);
 equ(1).Aeq(:,inp.x) = eye(lent.x);
 equ(1).Aeq(:,inp.y) = eye(lent.y);
 equ(1).Aeq(:,inp.n) = 5*eye(lent.n);
+equ(1).Aeq(:,inp.wd) = eye(lent.wd);
+equ(1).Aeq(:,inp.wc) = -eye(lent.wc);
 
 equ(1).beq = ones(lent.x,1) .* l_hat;
 
