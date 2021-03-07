@@ -4,8 +4,8 @@
 clear; clc;
 tic
 ts = 5; % Set the time step
-maxiter = 100; % Set maximum iteration
-rhoset = [10]; % Penalty value for ADMM
+maxiter = 1000; % Set maximum iteration
+rhoset = [0.1 1 10 100]; % Penalty value for ADMM
 tol = 10^-5; % tolerance
 y_hat = [2 4 8 7 10]';
 l_hat = [25 40 35 50 55]';
