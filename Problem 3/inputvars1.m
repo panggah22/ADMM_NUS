@@ -10,8 +10,13 @@ function inp = inputvars1(lent)
 
 inp.x = 1:lent.x;
 inp.y = inp.x(end) + (1:lent.y);
-inp.n = inp.y(end) + (1:lent.n);
-inp.deln = inp.n(end) + (1:lent.deln);
+inp.wc = inp.y(end) + (1:lent.wc);
+inp.wd = inp.wc(end) + (1:lent.wd);
+
+inp.n = inp.wd(end) + (1:lent.n);
+inp.betac = inp.n(end) + (1:lent.betac);
+inp.betad = inp.betac(end) + (1:lent.betad);
+inp.deln = inp.betad(end) + (1:lent.deln);
 
 inp.cont = 1:inp.y(end);
 inp.intg = inp.n(1) : inp.deln(end);

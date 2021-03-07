@@ -13,15 +13,20 @@ H1(inp.deln,inp.deln) = 2*50*eye(lent.deln);
 
 H2 = zeros(lent.total);
 H2(inp.y,inp.y) = 2*eye(lent.y);
+H2(inp.wc,inp.wc) = 2*eye(lent.wc);
+H2(inp.wd,inp.wd) = 2*eye(lent.wd);
 
 H = H1 + ((rho/2) * H2);
 
 f1 = zeros(lent.total,1);
 f1(inp.x) = 5;
 f1(inp.y) = 3;
+f1(inp.wd) = 4;
 
 f2 = zeros(lent.total,1);
 f2(inp.y) = -2 * u(inp.y);
+f2(inp.wc) = -2 * u(inp.wc);
+f2(inp.wd) = -2 * u(inp.wd);
 
 f = f1 + ((rho/2) * f2);
 
@@ -31,6 +36,8 @@ lb = -inf(lent.total,1);
 lb(inp.x) = 0;
 lb(inp.y) = 0;
 lb(inp.n) = 0;
+lb(inp.wc) = 0;
+lb(inp.wd) = 0;
 
 ub = inf(lent.total,1);
 ub(inp.y) = y_hat;
@@ -52,13 +59,15 @@ equ(1).Aeq = zeros(lent.x,lent.total);
 equ(1).Aeq(:,inp.x) = eye(lent.x);
 equ(1).Aeq(:,inp.y) = eye(lent.y);
 equ(1).Aeq(:,inp.n) = 5*[zeros(lent.n-len.n,1) eye(lent.n-len.n)];
+equ(1).Aeq(:,inp.wd) = eye(lent.wd);
+equ(1).Aeq(:,inp.wc) = -eye(lent.wc);
 
 equ(1).beq = ones(lent.x,1) .* l_hat;
 
 %% Constraint 2
 equ(2).Aeq = zeros(lent.deln,lent.total);
 equ(2).Aeq(:,inp.deln) = eye(lent.deln);
-equ(2).Aeq(:,inp.n) = time_relate(eye(len.n), -eye(len.n), ts+1);
+equ(2).Aeq(:,inp.n) = [-eye(len.n) zeros(len.n,lent.n-len.n); time_relate(eye(len.n), -eye(len.n), ts)];
 
 equ(2).beq = zeros(lent.deln,1);
 
