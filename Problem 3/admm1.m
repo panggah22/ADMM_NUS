@@ -34,17 +34,10 @@ f = f1 + ((rho/2) * f2);
 %% Bounds
 lb = -inf(lent.total,1);
 lb(inp.x) = 0;
-lb(inp.y) = 0;
 lb(inp.n) = 0;
-lb(inp.wc) = 0;
-lb(inp.wd) = 0;
-lb(inp.betac) = 0;
-lb(inp.betad) = 0;
 
 ub = inf(lent.total,1);
-ub(inp.y) = y_hat;
 ub(inp.n) = 8;
-ub([inp.betac inp.betad]) = 1;
 
 %% Define variable type (continuous and integer)
 ctypenum = 67*ones(1,lent.total);
@@ -74,26 +67,26 @@ equ(2).Aeq(:,inp.n) = [-eye(len.n) zeros(len.n,lent.n-len.n); time_relate(eye(le
 
 equ(2).beq = zeros(lent.deln,1);
 
-%% Constraint 6
-ineq(6).A = zeros(lent.wc,lent.total);
-ineq(6).A(:,inp.wc) = eye(lent.wc);
-ineq(6).A(:,inp.betac) = 10 * -eye(lent.betac);
+% %% Constraint 6
+% ineq(6).A = zeros(lent.wc,lent.total);
+% ineq(6).A(:,inp.wc) = eye(lent.wc);
+% ineq(6).A(:,inp.betac) = 10 * -eye(lent.betac);
+% 
+% ineq(6).b = zeros(lent.wc,1);
 
-ineq(6).b = zeros(lent.wc,1);
+% %% Constraint 7
+% ineq(7).A = zeros(lent.wd,lent.total);
+% ineq(7).A(:,inp.wd) = eye(lent.wd);
+% ineq(7).A(:,inp.betad) = 10 * -eye(lent.betad);
+% 
+% ineq(7).b = zeros(lent.wd,1);
 
-%% Constraint 7
-ineq(7).A = zeros(lent.wd,lent.total);
-ineq(7).A(:,inp.wd) = eye(lent.wd);
-ineq(7).A(:,inp.betad) = 10 * -eye(lent.betad);
-
-ineq(7).b = zeros(lent.wd,1);
-
-%% Constraint 8
-ineq(8).A = zeros(lent.betac,lent.total);
-ineq(8).A(:,inp.betac) = eye(lent.betac);
-ineq(8).A(:,inp.betad) = eye(lent.betad);
-
-ineq(8).b = ones(lent.betac,1) .* 1.5;
+% %% Constraint 8
+% ineq(8).A = zeros(lent.betac,lent.total);
+% ineq(8).A(:,inp.betac) = eye(lent.betac);
+% ineq(8).A(:,inp.betad) = eye(lent.betad);
+% 
+% ineq(8).b = ones(lent.betac,1) .* 1.5;
 
 %% Concatenate constraints
 if logical(exist('equ','var'))

@@ -5,12 +5,12 @@ clear; clc;
 tic
 ts = 5; % Set the time step
 maxiter = 1000; % Set maximum iteration
-rhoset = [0.1 1 10 100]; % Penalty value for ADMM
+rhoset = [0.1, 1, 10, 100]; % Penalty value for ADMM
 tol = 10^-5; % tolerance
 y_hat = [2 4 8 7 10]';
 l_hat = [25 40 35 50 55]';
-relax = false;
-% relax = true;
+% relax = false;
+relax = true;
 
 for pp = 1:length(rhoset) 
     rho = rhoset(pp);
@@ -109,13 +109,17 @@ for pp = 1:length(rhoset)
     re = semilogy(residual,'LineWidth',1.5);
     grid on
     title (['Convergence with \rho = ',num2str(rho)]);
+    xlim([1 iter]); ylim([10^-6 10]);
     xlabel ('Iteration');
-    ylabel ('Residual')
+    ylabel ('Residual');
     
     finalVar{pp} = X(:,iter);
     %% Counting back objective value
     fv1(pp) = sum(X{1,iter} .* lin1 + X{1,iter}.^2 .* (diag(quad1)/2));
     fv2(pp) = sum(X{2,iter} .* lin2 + X{2,iter}.^2 .* (diag(quad2)/2));
+    fv3(pp) = sum(X{3,iter} .* lin3 + X{3,iter}.^2 .* (diag(quad3)/2));
+    
+    fvtotal(pp) = fv1(pp) + fv2(pp) + fv3(pp);
 end
 
 toc

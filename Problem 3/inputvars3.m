@@ -13,7 +13,10 @@ inp.qq = inp.q(end) + (1:lent.qq);
 inp.wc = inp.qq(end) + (1:lent.wc);
 inp.wd = inp.wc(end) + (1:lent.wd);
 
+inp.betac = inp.wd(end) + (1:lent.betac);
+inp.betad = inp.betac(end) + (1:lent.betad);
+
 inp.cont = 1:inp.wd(end);
-% inp.intg = inp.n(1) : inp.deln(end);
+inp.intg = inp.betac(1) : inp.betad(end);
 
 end

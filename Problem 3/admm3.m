@@ -31,15 +31,19 @@ lb = -inf(lent.total,1);
 lb(inp.q) = 0.4;
 lb(inp.wc) = 0;
 lb(inp.wd) = 0;
+lb(inp.betac) = 0;
+lb(inp.betad) = 0;
 
 ub = inf(lent.total,1);
 ub(inp.q) = 1;
+ub(inp.betac) = 1;
+ub(inp.betad) = 1;
 
 %% Define variable type (continuous and integer)
 ctypenum = 67*ones(1,lent.total);
-% if ~relax
-%     ctypenum(inp.intg) = 73;
-% end
+if ~relax
+    ctypenum(inp.intg) = 73;
+end
 ctype = char(ctypenum);
 
 options = cplexoptimset('cplex');
@@ -58,10 +62,31 @@ equ(4).beq = ones(lent.qq,1) .* 0.8;
 equ(5).Aeq = zeros(lent.q,lent.total);
 equ(5).Aeq(:,inp.q) = [-eye(len.q) zeros(len.q,lent.q-len.q); time_relate(eye(len.q), -eye(len.q), ts)];
 equ(5).Aeq(:,inp.wc) = 0.05 .* -eye(lent.wc);
-equ(5).Aeq(:,inp.wd) = 0.05*5 .* eye(lent.wd);
+equ(5).Aeq(:,inp.wd) = 0.05 .* eye(lent.wd);
 
 equ(5).beq = zeros(lent.q,1);
-equ(5).beq(1:len.q) = 0.8;
+equ(5).beq(1:len.q) = -0.8;
+
+%% Constraint 6
+ineq(6).A = zeros(lent.wc,lent.total);
+ineq(6).A(:,inp.wc) = eye(lent.wc);
+ineq(6).A(:,inp.betac) = 10 * -eye(lent.betac);
+
+ineq(6).b = zeros(lent.wc,1);
+
+%% Constraint 7
+ineq(7).A = zeros(lent.wd,lent.total);
+ineq(7).A(:,inp.wd) = eye(lent.wd);
+ineq(7).A(:,inp.betad) = 10 * -eye(lent.betad);
+
+ineq(7).b = zeros(lent.wd,1);
+
+%% Constraint 8
+ineq(8).A = zeros(lent.betac,lent.total);
+ineq(8).A(:,inp.betac) = eye(lent.betac);
+ineq(8).A(:,inp.betad) = eye(lent.betad);
+
+ineq(8).b = ones(lent.betac,1) .* 1.5;
 
 %% Concatenate constraints
 if logical(exist('equ','var'))

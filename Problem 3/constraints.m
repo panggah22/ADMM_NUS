@@ -50,10 +50,10 @@ equ(4).beq = ones(lent.qq,1) .* 0.8;
 equ(5).Aeq = zeros(lent.q,lent.total);
 equ(5).Aeq(:,inp.q) = [-eye(len.q) zeros(len.q,lent.q-len.q); time_relate(eye(len.q), -eye(len.q), ts)];
 equ(5).Aeq(:,inp.wc) = 0.05 .* -eye(lent.wc);
-equ(5).Aeq(:,inp.wd) = 0.05*5 .* eye(lent.wd);
+equ(5).Aeq(:,inp.wd) = 0.05 .* eye(lent.wd);
 
 equ(5).beq = zeros(lent.q,1);
-equ(5).beq(1:len.q) = 0.8;
+equ(5).beq(1:len.q) = -0.8;
 
 %% Constraint 6
 ineq(6).A = zeros(lent.wc,lent.total);
