@@ -5,7 +5,7 @@ clear; clc;
 tic
 ts = 5; % Set the time step
 maxiter = 1000; % Set maximum iteration
-rhoset = [0.1, 1, 10, 100]; % Penalty value for ADMM
+rhoset = [0.1 1 10 100]; % Penalty value for ADMM
 tol = 10^-5; % tolerance
 y_hat = [2 4 8 7 10]';
 l_hat = [25 40 35 50 55]';
@@ -112,6 +112,12 @@ for pp = 1:length(rhoset)
     xlim([1 iter]); ylim([10^-6 10]);
     xlabel ('Iteration');
     ylabel ('Residual');
+    
+    xvalue = cell2mat(X(1,:));
+    xvalue = xvalue(inp1.y,:);
+    figure;
+    plot(xvalue')
+    xlim([0 50])
     
     finalVar{pp} = X(:,iter);
     %% Counting back objective value
